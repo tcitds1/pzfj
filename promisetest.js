@@ -1,5 +1,5 @@
 new Promise((resolve, reject) => {
-  resolve('hello')
-}).then('haha').then(val => {
+  resolve('123')
+}).then().then(val => {
   console.log(val)
 })
