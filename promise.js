@@ -2,7 +2,12 @@
 const PENDING = 'PENDING';
 const FULFILLED = 'FULFILLED';
 const REJECTED = 'REJECTED';
-function _Promise(excutor) {
+
+function resolvePromise (promise2, x, resolve, reject) {
+  resolve(x)
+}
+
+function Promise(excutor) {
   this.status = PENDING
   this.value = undefined
   this.reason = undefined
@@ -33,22 +38,56 @@ function _Promise(excutor) {
     reject(error)
   }
 }
-_Promise.prototype.then = function (resFn, rejFn) {
-  resFn = typeof resFn === 'function' ? resFn : function () {}
-  rejFn = typeof rejFn === 'function' ? rejFn : function () {}
-  if (this.status === FULFILLED) {
-    resFn(this.value)
-  }
-  if (this.status === REJECTED) {
-    rejFn(this.reason)
-  }
-  if (this.status === PENDING) {
-    this.onResolveCallbacks.push(() => { resFn(this.value) })
-    this.onRejectCallBacks.push(() => { resFn(this.reason) })
-  }
+Promise.prototype.then = function (resFn, rejFn) {
+  resFn = typeof resFn === 'function' ? resFn : v => v
+  rejFn = typeof rejFn === 'function' ? rejFn : error => { throw error }
+  let promise1 = new Promise((resolve, reject) => {
+    if (this.status === FULFILLED) {
+      try {  
+        setTimeout(() => {
+          let x = resFn(this.value)
+          resolvePromise(promise1, x, resolve, reject)
+        })
+      } catch (e) {
+        reject(e)
+      }
+    }
+    if (this.status === REJECTED) {
+      try {  
+        setTimeout(() => {
+          let x = rejFn(this.value)
+          resolvePromise(promise1, x, resolve, reject)
+        })
+      } catch (e) {
+        reject(e)
+      }
+    }
+    if (this.status === PENDING) {
+      this.onResolveCallbacks.push(() => { 
+        try {  
+          setTimeout(() => {
+            let x = resFn(this.value)
+            resolvePromise(promise1, x, resolve, reject)
+          })
+        } catch (e) {
+          reject(e)
+        }
+      })
+      this.onRejectCallBacks.push(() => { 
+        try {  
+          setTimeout(() => {
+            let x = rejFn(this.value)
+            resolvePromise(promise1, x, resolve, reject)
+          })
+        } catch (e) {
+          reject(e)
+        }
+      })
+    }
+  })
 }
 
-let a = new _Promise((res, rej) => {
+let a = new Promise((res, rej) => {
   setTimeout(() => {
     console.log(1)
     res('异步任务回调')
